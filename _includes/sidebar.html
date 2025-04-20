@@ -1,6 +1,46 @@
 {% if page.author_profile or layout.author_profile or page.sidebar %}
   <div class="sidebar sticky">
   {% if page.author_profile or layout.author_profile %}{% include author-profile.html %}{% endif %}
+
+  {% comment %} --- Sidebar Categories & Tags --- {% endcomment %}
+  <div class="sidebar-categories">
+    <h4>카테고리</h4>
+    {% assign categories = site.categories | sort %}
+    {% for category_data in categories %}
+      {% assign category_name = category_data[0] %}
+      {% assign posts_in_category = category_data[1] %}
+
+      <div class="category-group">
+        <h5><a href="{{ site.baseurl }}/categories/{{ category_name | slugify }}/">{{ category_name }}</a></h5>
+        <ul>
+          {% assign tags_in_category = "" | split: "" %}
+          {% for post in posts_in_category %}
+            {% for tag in post.tags %}
+              {% unless tags_in_category contains tag %}
+                {% assign tags_in_category = tags_in_category | push: tag %}
+              {% endunless %}
+            {% endfor %}
+          {% endfor %}
+          {% assign sorted_tags = tags_in_category | sort %}
+
+          {% if sorted_tags.size > 0 %}
+            {% for tag_name in sorted_tags %}
+              {% assign tag_posts_in_category = site.tags[tag_name] | where_exp: "post", "post.categories contains category_name" %}
+              {% if tag_posts_in_category.size > 0 %}
+                <li>
+                    <a href="{{ site.baseurl }}/tags/{{ tag_name | slugify }}/">{{ tag_name }}</a> ({{ tag_posts_in_category.size }})
+                </li>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <li><a href="{{ site.baseurl }}/categories/{{ category_name | slugify }}/">전체 ({{ posts_in_category.size }})</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    {% endfor %}
+  </div>
+  {% comment %} --- End Sidebar Categories & Tags --- {% endcomment %}
+
   {% if page.sidebar %}
     {% for s in page.sidebar %}
       {% if s.image %}
